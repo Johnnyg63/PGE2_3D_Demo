@@ -69,8 +69,8 @@ public:
 
 
 // 3D Camera
-    //olc::utils::hw3d::Camera3D Cam3D;
-	olc::utils::hw3d::Camera3D_SimpleFPS Cam3D_SimpleFPS;
+    olc::utils::hw3d::Camera3D Cam3D;
+	//olc::utils::hw3d::Camera3D_SimpleFPS Cam3D_SimpleFPS;
 
     // Sanity Cube
     olc::utils::hw3d::mesh matSanityCube;
@@ -93,9 +93,9 @@ public:
         matWorld.identity();
         matView.identity();
 
-        Cam3D_SimpleFPS.SetScreenSize(GetScreenSize()); // SetAspectRatio(fAspect);
-        Cam3D_SimpleFPS.SetClippingPlanes(n, f);
-        Cam3D_SimpleFPS.SetFieldOfView(S);
+        Cam3D.SetScreenSize(GetScreenSize()); // SetAspectRatio(fAspect);
+        Cam3D.SetClippingPlanes(n, f);
+        Cam3D.SetFieldOfView(S);
 
 
         auto t = olc::utils::hw3d::LoadObj("./assets/objectfiles/mountains.obj");
@@ -130,16 +130,27 @@ public:
     {
         SetDrawTarget(nullptr);
         Clear(olc::BLUE);
+        // New code:
+        olc::vf3d  vf3Target = { 0,0,1 };
 
         olc::mf4d mRotationX, mRotationY, mRotationZ;  // Rotation Matrices
         olc::mf4d mPosition, mCollision;                // Position and Collision Matrices
         olc::mf4d mMovement, mOffset;                   // Movement and Offset Matrices
 
-		mOffset.translate(vf3dWorldOffset);
-		matView = matWorld * mOffset;   // Set the World Matrix to the Offset Matrix  
+        // Update our camera position first, as this is what everything else is base upon
+        // Create a "Point At"
+        olc::vf3d vf3dTarget = { 0,0,1 };
 
-        Cam3D_SimpleFPS.Update();
-        matWorld = Cam3D_SimpleFPS.GetViewMatrix();
+        mRotationY.rotateY(fTheta);  // Left/Right
+        mRotationX.rotateX(fYaw);    // Up/Down
+
+        vf3dLookDir = mRotationY * mRotationX * vf3dTarget;   // Left-Right * Up-Down
+        vf3dTarget = vf3dCamera + vf3dLookDir;
+
+        Cam3D.SetPosition(vf3dCamera);
+        Cam3D.SetTarget(vf3dTarget);
+        Cam3D.Update();
+        matWorld = Cam3D.GetViewMatrix();
 
         // Manage forward / backwards
         vf3dForward = vf3dLookDir * (fForwardRoC * fElapsedTime);
@@ -147,7 +158,7 @@ public:
         ClearBuffer(olc::CYAN, true); // Clear the buffer folks
 
 
-        HW3D_Projection(Cam3D_SimpleFPS.GetProjectionMatrix().m);
+        HW3D_Projection(Cam3D.GetProjectionMatrix().m);
 
         // Lighting
         for (size_t i = 0; i < meshMountain.pos.size(); i += 3)
@@ -173,7 +184,7 @@ public:
         HW3D_DrawLineBox((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 10.0f, 10.0f, 10.0f }, olc::YELLOW);
 
         // Draw the world
-        HW3D_DrawObject((matWorld * matView).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
+        HW3D_DrawObject((matWorld).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
 
         // End new code
 
@@ -210,19 +221,19 @@ public:
         {
 
             // We know the Right Center point we need to compare our positions
-            // Looking left
+            // Looking Right
             if ((float)GetMousePos().x > (((float)centreScreenPos.x / 100) * 130))
             {
-                //fTheta -= fThetaRoC * fElapsedTime;
-				Cam3D_SimpleFPS.TurnRight(fThetaRoC * fElapsedTime);
+                fTheta -= fThetaRoC * fElapsedTime;
+
 
             }
 
-            // Looking right
+            // Looking Left
             if ((float)GetMousePos().x < (((float)centreScreenPos.x / 100) * 70))
             {
-                //fTheta += fThetaRoC * fElapsedTime;
-				Cam3D_SimpleFPS.TurnLeft(fThetaRoC * fElapsedTime);
+                fTheta += fThetaRoC * fElapsedTime;
+
 
             }
 
@@ -231,7 +242,6 @@ public:
             {
                 fYaw -= fYawRoC * fElapsedTime;
                 if (fYaw < -1.0f) fYaw = -1.0f;
-                
             }
 
             // Looking Down
@@ -266,32 +276,28 @@ public:
         // Moving Forward
         if (GetKey(olc::Key::UP).bHeld || GetMouse(1).bHeld)
         {
-            //vf3dCamera += vf3dForward;
-			Cam3D_SimpleFPS.Forwards(fForwardRoC * fElapsedTime);
+            vf3dCamera += vf3dForward;
         }
 
         // Moving Backward
         if (GetKey(olc::Key::DOWN).bHeld)
         {
-            //vf3dCamera -= vf3dForward;
-			Cam3D_SimpleFPS.Backwards(fForwardRoC * fElapsedTime);
+            vf3dCamera -= vf3dForward;
         }
 
         // Moving Left (Strife)
         if (GetKey(olc::Key::LEFT).bHeld)
         {
-            //vf3dCamera.x -= cos(fTheta) * fStrifeRoC * fElapsedTime;
-            //vf3dCamera.z -= sin(fTheta) * fStrifeRoC * fElapsedTime;
-			Cam3D_SimpleFPS.StrafeLeft(fStrifeRoC * fElapsedTime);
+            vf3dCamera.x -= cos(fTheta) * fStrifeRoC * fElapsedTime;
+            vf3dCamera.z -= sin(fTheta) * fStrifeRoC * fElapsedTime;
         }
 
 
         // Moving Right (Strife)
         if (GetKey(olc::Key::RIGHT).bHeld)
         {
-            //vf3dCamera.x += cos(fTheta) * fStrifeRoC * fElapsedTime;
-            //vf3dCamera.z += sin(fTheta) * fStrifeRoC * fElapsedTime;
-			Cam3D_SimpleFPS.StrafeRight(fStrifeRoC * fElapsedTime); 
+            vf3dCamera.x += cos(fTheta) * fStrifeRoC * fElapsedTime;
+            vf3dCamera.z += sin(fTheta) * fStrifeRoC * fElapsedTime;
 
         }
 
@@ -300,14 +306,12 @@ public:
         if (GetKey(olc::Key::SPACE).bHeld)
         {
             fJump += fJumpRoC * fElapsedTime;
-            //vf3dCamera.y = fJump;
-			Cam3D_SimpleFPS.Upwards(fJumpRoC * fElapsedTime);
+            vf3dCamera.y = fJump;
         }
         else if (GetKey(olc::Key::B).bHeld)
         {
             fJump -= fJumpRoC * fElapsedTime;
-            //vf3dCamera.y = fJump;
-			Cam3D_SimpleFPS.Downwards(fJumpRoC * fElapsedTime);
+            vf3dCamera.y = fJump;
 
         }
         else
@@ -374,7 +378,6 @@ public:
 
 
     }
-
 
 };
 
