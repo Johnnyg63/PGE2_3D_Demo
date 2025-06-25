@@ -5,37 +5,384 @@
 #include "olcPixelGameEngine.h"
 
 // Override base class with your custom functionality
-class Example : public olc::PixelGameEngine
+class Demo3D : public olc::PixelGameEngine
 {
 public:
-	Example()
+    Demo3D()
 	{
 		// Name your application
-		sAppName = "Example";
+		sAppName = "PGE 2.0 3D Demo";
 	}
+
+    olc::mf4d matWorld;
+    olc::mf4d matView;
+    olc::mf4d matProject;
+    olc::utils::hw3d::mesh meshMountain;
+    olc::Renderable gfx1;
+
+    olc::vf3d vf3dUp = { 0.0f, 1.0f, 0.0f };                // vf3d up direction
+    olc::vf3d vf3dCamera = { -5.0f, 10.5f, -10.0f };         // vf3d camera direction
+    olc::vf3d vf3dLookDir = { 0.0f, 0.0f, 1.0f };           // vf3d look direction
+    olc::vf3d vf3dForward = { 0.0f, 0.0f, 0.0f };           // vf3d Forward direction
+    olc::vf3d vf3dOffset = { -5.0f, 10.5f, -10.0f };         // vf3d Offset
+    olc::vf3d vf3dSunLocation = { 100.0f, 100.0f, 100.0f }; // vf3d Sun Location
+	olc::vf3d vf3dWorldPosition = { 0.0f, 0.0f, 0.0f };     // vf3d World Position
+	olc::vf3d vf3dWorldOffset = { 0.0f, -10.0f, 0.0f };       // vf3d World Offset
+
+    float fYaw = 0.0f;            // FPS Camera rotation in X plane
+    float fYawRoC = 1.0f;        // fYaw Rate of Change Look Up/Down
+    float fTheta = 0.0f;        // Spins World transform
+    float fThetaRoC = 1.5f;        // fTheta Rate of Change Spin Left/Right
+    float fStrifeRoC = 8.5f;    // Strife Rate of Change, thanks: #Boguslavv
+    float fForwardRoC = 8.0f;   // Forward/Backwards Rate of Change
+
+    float fSphereRoC = 0.5f;    // Sphere Rate of Change
+    float fSphereRotationY = -1.57079633; // Sphere start Y rotation position
+
+    float fJump = vf3dOffset.y;     // Monitors jump height so we can land again
+    float fJumpRoC = 4.0f;    // fTheta Rate of Change
+
+
+    /* Vectors */
+    std::vector<std::string> vecMessages;
+    /* END Vectors*/
+
+    uint32_t nFrameCount = 0;
+    float fStep = 20.0f;
+    olc::vf2d vf2MessPos = { 10.0f, 10.0f };
+
+    /* Sprites */
+    olc::Sprite* sprOLCPGEMobLogo = nullptr;
+    olc::Sprite* sprLandScape = nullptr;
+    /* END Sprites*/
+
+    /* Decals */
+    olc::Decal* decOLCPGEMobLogo = nullptr;
+    olc::Decal* decLandScape = nullptr;
+    /* End Decals */
+
+    /* Renders */
+    olc::Renderable renTestCube;
+    /* End Renders */
+
+
+
+
+// 3D Camera
+    //olc::utils::hw3d::Camera3D Cam3D;
+	olc::utils::hw3d::Camera3D_SimpleFPS Cam3D_SimpleFPS;
+
+    // Sanity Cube
+    olc::utils::hw3d::mesh matSanityCube;
+
+    // Manage Touch points
+    olc::vi2d centreScreenPos;
+    olc::vi2d leftCenterScreenPos;
+    olc::vi2d rightCenterScreenPos;
+
 
 public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
+        float S = 1.0f / (tan(3.14159f * 0.25f));
+        float f = 1000.0f;
+        float n = 0.1f;
+
+
+        matWorld.identity();
+        matView.identity();
+
+        Cam3D_SimpleFPS.SetScreenSize(GetScreenSize()); // SetAspectRatio(fAspect);
+        Cam3D_SimpleFPS.SetClippingPlanes(n, f);
+        Cam3D_SimpleFPS.SetFieldOfView(S);
+
+
+        auto t = olc::utils::hw3d::LoadObj("./assets/objectfiles/mountains.obj");
+        if (t.has_value())
+        {
+            meshMountain = *t;
+        }
+        else
+        {
+            int pause = 0; // TODO: Remove. We have an issue
+        }
+
+        Clear(olc::BLUE);
+
+        sprOLCPGEMobLogo = new olc::Sprite("./assets/images/olcpgemobilelogo.png");
+        decOLCPGEMobLogo = new olc::Decal(sprOLCPGEMobLogo);
+
+        // TODO: Change this to a renederable
+        sprLandScape = new olc::Sprite("./assets/images/MountainTest1.jpg");
+        decLandScape = new olc::Decal(sprLandScape);
+
+
+        centreScreenPos = GetScreenSize();
+        centreScreenPos.x = centreScreenPos.x / 2;
+        centreScreenPos.y = centreScreenPos.y / 2;
+
+        // Called once at the start, so create things here
 		return true;
 	}
 
-	bool OnUserUpdate(float fElapsedTime) override
-	{
-		// Called once per frame, draws random coloured pixels
-		for (int x = 0; x < ScreenWidth(); x++)
-			for (int y = 0; y < ScreenHeight(); y++)
-				Draw(x, y, olc::Pixel(rand() % 256, rand() % 256, rand() % 256));
-		return true;
-	}
+    bool OnUserUpdate(float fElapsedTime) override
+    {
+        SetDrawTarget(nullptr);
+        Clear(olc::BLUE);
+
+        olc::mf4d mRotationX, mRotationY, mRotationZ;  // Rotation Matrices
+        olc::mf4d mPosition, mCollision;                // Position and Collision Matrices
+        olc::mf4d mMovement, mOffset;                   // Movement and Offset Matrices
+
+		mOffset.translate(vf3dWorldOffset);
+		matView = matWorld * mOffset;   // Set the World Matrix to the Offset Matrix  
+
+        Cam3D_SimpleFPS.Update();
+        matWorld = Cam3D_SimpleFPS.GetViewMatrix();
+
+        // Manage forward / backwards
+        vf3dForward = vf3dLookDir * (fForwardRoC * fElapsedTime);
+
+        ClearBuffer(olc::CYAN, true); // Clear the buffer folks
+
+
+        HW3D_Projection(Cam3D_SimpleFPS.GetProjectionMatrix().m);
+
+        // Lighting
+        for (size_t i = 0; i < meshMountain.pos.size(); i += 3)
+        {
+            const auto& p0 = meshMountain.pos[i + 0];
+            const auto& p1 = meshMountain.pos[i + 1];
+            const auto& p2 = meshMountain.pos[i + 2];
+
+            olc::vf3d vCross = olc::vf3d(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]).cross(olc::vf3d(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])).norm();
+
+            olc::vf3d vLight = olc::vf3d(1.0f, 1.0f, 1.0f).norm();
+
+            float illum = std::clamp(vCross.dot(vLight), 0.0f, 1.0f) * 0.6f + 0.4f;
+            meshMountain.col[i + 0] = olc::PixelF(illum, illum, illum, 1.0f);
+            meshMountain.col[i + 1] = olc::PixelF(illum, illum, illum, 1.0f);
+            meshMountain.col[i + 2] = olc::PixelF(illum, illum, illum, 1.0f);
+        }
+
+        // Draw a line
+        HW3D_DrawLine((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f, 100.0f }, olc::RED);
+
+        // Draw a Box
+        HW3D_DrawLineBox((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 10.0f, 10.0f, 10.0f }, olc::YELLOW);
+
+        // Draw the world
+        HW3D_DrawObject((matWorld * matView).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
+
+        // End new code
+
+        UpdateCamByUserInput(fElapsedTime);
+
+        DisplayMessages();
+
+        // Draw Logo
+        DrawDecal({ 5.0f, (float)ScreenHeight() - 100 }, decOLCPGEMobLogo, { 0.5f, 0.5f });
+
+        if (GetKey(olc::Key::ESCAPE).bPressed)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+
+
+
+
+    }
+
+    /*
+    * Updates the cam position by user input
+    * Mouse/Touch/Keyboard
+    */
+    void UpdateCamByUserInput(float fElapsedTime)
+    {
+        // Handle Camera
+        // Touch zeros (single touch) handles Camera look direction
+        if (GetMouse(0).bHeld)
+        {
+
+            // We know the Right Center point we need to compare our positions
+            // Looking left
+            if ((float)GetMousePos().x > (((float)centreScreenPos.x / 100) * 130))
+            {
+                //fTheta -= fThetaRoC * fElapsedTime;
+				Cam3D_SimpleFPS.TurnRight(fThetaRoC * fElapsedTime);
+
+            }
+
+            // Looking right
+            if ((float)GetMousePos().x < (((float)centreScreenPos.x / 100) * 70))
+            {
+                //fTheta += fThetaRoC * fElapsedTime;
+				Cam3D_SimpleFPS.TurnLeft(fThetaRoC * fElapsedTime);
+
+            }
+
+            // Looking Up
+            if ((float)GetMousePos().y < (((float)centreScreenPos.y / 100) * 70))
+            {
+                fYaw -= fYawRoC * fElapsedTime;
+                if (fYaw < -1.0f) fYaw = -1.0f;
+                
+            }
+
+            // Looking Down
+            if ((float)GetMousePos().y > (((float)centreScreenPos.y / 100) * 130))
+            {
+                fYaw += fYawRoC * fElapsedTime;
+                if (fYaw > 1.0f) fYaw = 1.0f;
+            }
+
+        }
+        else
+        {
+            // Move the camera back to center, stops the dizzies!
+            if (fYaw > -0.01f && fYaw < 0.01f)
+            {
+                fYaw = 0.0f;
+            }
+            if (fYaw >= 0.01)
+            {
+                fYaw -= fYawRoC * fElapsedTime;
+
+            }
+            if (fYaw <= -0.01)
+            {
+                fYaw += fYawRoC * fElapsedTime;
+
+            }
+
+        }
+
+        // Handle movement
+        // Moving Forward
+        if (GetKey(olc::Key::UP).bHeld || GetMouse(1).bHeld)
+        {
+            //vf3dCamera += vf3dForward;
+			Cam3D_SimpleFPS.Forwards(fForwardRoC * fElapsedTime);
+        }
+
+        // Moving Backward
+        if (GetKey(olc::Key::DOWN).bHeld)
+        {
+            //vf3dCamera -= vf3dForward;
+			Cam3D_SimpleFPS.Backwards(fForwardRoC * fElapsedTime);
+        }
+
+        // Moving Left (Strife)
+        if (GetKey(olc::Key::LEFT).bHeld)
+        {
+            //vf3dCamera.x -= cos(fTheta) * fStrifeRoC * fElapsedTime;
+            //vf3dCamera.z -= sin(fTheta) * fStrifeRoC * fElapsedTime;
+			Cam3D_SimpleFPS.StrafeLeft(fStrifeRoC * fElapsedTime);
+        }
+
+
+        // Moving Right (Strife)
+        if (GetKey(olc::Key::RIGHT).bHeld)
+        {
+            //vf3dCamera.x += cos(fTheta) * fStrifeRoC * fElapsedTime;
+            //vf3dCamera.z += sin(fTheta) * fStrifeRoC * fElapsedTime;
+			Cam3D_SimpleFPS.StrafeRight(fStrifeRoC * fElapsedTime); 
+
+        }
+
+
+        // Moving UP
+        if (GetKey(olc::Key::SPACE).bHeld)
+        {
+            fJump += fJumpRoC * fElapsedTime;
+            //vf3dCamera.y = fJump;
+			Cam3D_SimpleFPS.Upwards(fJumpRoC * fElapsedTime);
+        }
+        else if (GetKey(olc::Key::B).bHeld)
+        {
+            fJump -= fJumpRoC * fElapsedTime;
+            //vf3dCamera.y = fJump;
+			Cam3D_SimpleFPS.Downwards(fJumpRoC * fElapsedTime);
+
+        }
+        else
+        {
+            /* if (fJump > (vf3dOffset.y - 0.01f) && fJump < (vf3dOffset.y + 0.01f))
+             {
+                 fJump = vf3dOffset.y;
+                 vf3dCamera.y = fJump;
+             }
+             if (fJump >= (vf3dOffset.y + 0.01))
+             {
+                 fJump -= 4.0f * fElapsedTime;
+                 vf3dCamera.y = fJump;
+             }
+             if (fJump <= (vf3dOffset.y - 0.01))
+             {
+                 fJump += 4.0f * fElapsedTime;
+                 vf3dCamera.y = fJump;
+             }*/
+        }
+
+
+
+        // Set Sun Location
+        if (GetKey(olc::Key::S).bHeld)
+        {
+            vf3dSunLocation.x = float(GetMouseX());
+            vf3dSunLocation.y = float(GetMouseY());
+        }
+    }
+
+    /*
+    * Displays messages on the screen
+    */
+    void DisplayMessages()
+    {
+        nFrameCount = GetFPS();
+
+        std::string sMessage = "OneLoneCoder.com";
+        vecMessages.push_back(sMessage);
+
+        sMessage = sAppName + " - FPS: " + std::to_string(nFrameCount);
+        vecMessages.push_back(sMessage);
+
+        sMessage = "Sun X: " + std::to_string(vf3dSunLocation.x);
+        vecMessages.push_back(sMessage);
+        sMessage = "Sun Y: " + std::to_string(vf3dSunLocation.y);
+        vecMessages.push_back(sMessage);
+        sMessage = "Sun Z: " + std::to_string(vf3dSunLocation.z);
+        vecMessages.push_back(sMessage);
+
+
+        sMessage = "---";
+        vecMessages.push_back(sMessage);
+
+        fStep = 10;
+        vf2MessPos.y = fStep;
+        for (auto& s : vecMessages)
+        {
+            DrawStringDecal(vf2MessPos, s);
+            vf2MessPos.y += fStep;
+        }
+        vecMessages.clear();
+
+
+    }
+
+
 };
 
 int main()
 {
-	Example demo;
-	if (demo.Construct(256, 240, 4, 4))
-		demo.Start();
+    Demo3D demo;
+    if (demo.Construct(1280, 720, 1, 1, false))
+        demo.Start();
 	return 0;
 }
 

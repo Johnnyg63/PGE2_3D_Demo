@@ -237,7 +237,7 @@ namespace olc
 		// Compare if this vector is not numerically equal to another
 		inline constexpr bool operator != (const v_3d& rhs) const
 		{
-			return (this->x != rhs.x || this->y != rhs.y || this-> != rhs.z);
+			return (this->x != rhs.x || this->y != rhs.y || this->z != rhs.z);
 		}
 
 		// Return this vector as a std::string, of the form "(x,y)"
