@@ -16,6 +16,7 @@ public:
 
     olc::mf4d matWorld;
     olc::mf4d matView;
+    olc::mf4d matScale;
     olc::mf4d matProject;
     olc::utils::hw3d::mesh meshMountain;
     olc::Renderable gfx1;
@@ -27,7 +28,8 @@ public:
     olc::vf3d vf3dOffset = { -5.0f, 10.5f, -10.0f };         // vf3d Offset
     olc::vf3d vf3dSunLocation = { 100.0f, 100.0f, 100.0f }; // vf3d Sun Location
 	olc::vf3d vf3dWorldPosition = { 0.0f, 0.0f, 0.0f };     // vf3d World Position
-	olc::vf3d vf3dWorldOffset = { 0.0f, -10.0f, 0.0f };       // vf3d World Offset
+	olc::vf3d vf3dWorldOffset = { 0.0f, 1.0f, 0.0f };       // vf3d World Offset
+    olc::vf3d vf3dWorldScale = { 30.0f, 30.0f, 30.0f };       // vf3d World Scale
 
     float fYaw = 0.0f;            // FPS Camera rotation in X plane
     float fYawRoC = 1.0f;        // fYaw Rate of Change Look Up/Down
@@ -98,7 +100,7 @@ public:
         Cam3D.SetFieldOfView(S);
 
 
-        auto t = olc::utils::hw3d::LoadObj("./assets/objectfiles/mountains.obj");
+        auto t = olc::utils::hw3d::LoadObj("./assets/objectfiles/Master_Layout_Texture.obj");
         if (t.has_value())
         {
             meshMountain = *t;
@@ -114,7 +116,7 @@ public:
         decOLCPGEMobLogo = new olc::Decal(sprOLCPGEMobLogo);
 
         // TODO: Change this to a renederable
-        sprLandScape = new olc::Sprite("./assets/images/MountainTest1.jpg");
+        sprLandScape = new olc::Sprite("./assets/images/Master_Layout_Texture.png");
         decLandScape = new olc::Decal(sprLandScape);
 
 
@@ -135,8 +137,13 @@ public:
 
         olc::mf4d mRotationX, mRotationY, mRotationZ;  // Rotation Matrices
         olc::mf4d mPosition, mCollision;                // Position and Collision Matrices
-        olc::mf4d mMovement, mOffset;                   // Movement and Offset Matrices
+        olc::mf4d mMovement, mOffset, mScale;                   // Movement and Offset Matrices
 
+
+        // Set up scaling
+		mScale.scale(vf3dWorldScale); // Scale the world
+		mOffset.translate(vf3dWorldOffset); // Offset the world
+        matScale = mOffset * mScale; // Combine the scale and offset 
         // Update our camera position first, as this is what everything else is base upon
         // Create a "Point At"
         olc::vf3d vf3dTarget = { 0,0,1 };
@@ -161,7 +168,7 @@ public:
         HW3D_Projection(Cam3D.GetProjectionMatrix().m);
 
         // Lighting
-        for (size_t i = 0; i < meshMountain.pos.size(); i += 3)
+        /*for (size_t i = 0; i < meshMountain.pos.size(); i += 3)
         {
             const auto& p0 = meshMountain.pos[i + 0];
             const auto& p1 = meshMountain.pos[i + 1];
@@ -175,7 +182,7 @@ public:
             meshMountain.col[i + 0] = olc::PixelF(illum, illum, illum, 1.0f);
             meshMountain.col[i + 1] = olc::PixelF(illum, illum, illum, 1.0f);
             meshMountain.col[i + 2] = olc::PixelF(illum, illum, illum, 1.0f);
-        }
+        }*/
 
         // Draw a line
         HW3D_DrawLine((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f, 100.0f }, olc::RED);
@@ -184,7 +191,7 @@ public:
         HW3D_DrawLineBox((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 10.0f, 10.0f, 10.0f }, olc::YELLOW);
 
         // Draw the world
-        HW3D_DrawObject((matWorld).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
+        HW3D_DrawObject((matWorld * matScale).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
 
         // End new code
 
