@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{35f3565f-7b42-48e0-8340-b05d8ec98830}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\images">
+      <UniqueIdentifier>{f3d9076e-c3c0-4152-8ebb-4d4785500a1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\objectfiles">
+      <UniqueIdentifier>{550070ff-1c55-4b07-b255-7c409655a97e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\maps">
+      <UniqueIdentifier>{25ab5884-ef96-4b0c-92ae-ac80fe6a5859}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\mtl">
+      <UniqueIdentifier>{5580e6ec-eb47-4d14-9318-8dd341fae12e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\sounds">
+      <UniqueIdentifier>{4d4193f8-6efd-4be5-a50d-36c014d6e2da}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PGE2_3D_Demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="olcPixelGameEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="olcUTIL_Hardware3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\images\body3d.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\buttonundo.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\CircleVillage_texture.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\CornerVilliage_texture.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\cubeceEnemuhahaha.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\examplebg.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\face1.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\face2.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\Master_Layout_Texture.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\MountainTest1.jpg">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\olcpgemobilelogo.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\pngsun1280.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\profileimage.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\run.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\runsmall.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\SmallVillage_texture.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\spritesheet.png">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\TestLandScape.jpg">
+      <Filter>assets\images</Filter>
+    </Image>
+    <Image Include="assets\images\TestLandScape_small.png">
+      <Filter>assets\images</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="assets\images\readme.txt">
+      <Filter>assets\images</Filter>
+    </Text>
+    <Text Include="assets\objectfiles\text.txt">
+      <Filter>assets\objectfiles</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\maps\example1.city">
+      <Filter>assets\maps</Filter>
+    </None>
+    <None Include="assets\MTL\CircleVillage_texture.mtl">
+      <Filter>assets\mtl</Filter>
+    </None>
+    <None Include="assets\MTL\CornerVilliage_texture.mtl">
+      <Filter>assets\mtl</Filter>
+    </None>
+    <None Include="assets\MTL\Master_Layout_Texture.mtl">
+      <Filter>assets\mtl</Filter>
+    </None>
+    <None Include="assets\MTL\SmallVillage_texture.mtl">
+      <Filter>assets\mtl</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="assets\sounds\Sample_Test_44100.wav">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\Sample_Test_48000.wav">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\SampleA.wav">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\SampleB.wav">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\SampleC.wav">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\song1.mp3">
+      <Filter>assets\sounds</Filter>
+    </Media>
+    <Media Include="assets\sounds\testmusic.mp3">
+      <Filter>assets\sounds</Filter>
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="assets\objectfiles\CircleVillage_texture.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\CornerVilliage_texture.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\Master_Layout_Texture.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\mountains.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\SmallVillage_texture.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\teapot.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+    <Object Include="assets\objectfiles\unitcube.obj">
+      <Filter>assets\objectfiles</Filter>
+    </Object>
+  </ItemGroup>
+</Project>
